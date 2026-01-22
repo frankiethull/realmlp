@@ -21,12 +21,22 @@ You can install the development version of realmlp like so:
 pak::pak("frankiethull/realmlp")
 ```
 
+## Example
+
 ``` r
 library(realmlp)
 library(torch)
+library(rsample)
+
+corn_data <- maize::corn_data
+
+corn_splits <- initial_validation_split(corn_data)
+train <- training(corn_splits)
+validate <- validation(corn_splits)
+test <- testing(corn_splits)
 ```
 
-## Regression Example
+### Regression
 
 This is a basic example which shows you how to solve a common problem:
 
@@ -34,46 +44,49 @@ This is a basic example which shows you how to solve a common problem:
 set.seed(42)
 reg <- Standalone_RealMLP_TD_S_Regressor$new(device = "cpu")
 
-# Split data for validation
-train_idx <- sample(1:150, 120)
-X_train <- iris[train_idx, 1:3]
-y_train <- iris$Petal.Width[train_idx]
-X_val <- iris[-train_idx, 1:3]
-y_val <- iris$Petal.Width[-train_idx]
+reg$fit(
+  X = train |> dplyr::select(-height), 
+  y = train |> dplyr::pull(height), 
+  X_val = validate |> dplyr::select(-height), 
+  y_val = validate |> dplyr::pull(height)
+)
 
-# Fit with validation set
-reg$fit(X_train, y_train, X_val = X_val, y_val = y_val)
-
-# Predict
-yhat <- reg$predict(iris[, 1:3])
+# predictions
+yhat <- reg$predict(test |> dplyr::select(-height))
 ```
 
-## Classification Example
+### Classification
 
 ``` r
 set.seed(123)
 clf <- Standalone_RealMLP_TD_S_Classifier$new(device = "cpu")
 
-# Split data
-train_idx <- sample(1:150, 120)
-X_train <- iris[train_idx, 1:4]
-y_train <- iris$Species[train_idx]
-X_val <- iris[-train_idx, 1:4]
-y_val <- iris$Species[-train_idx]
+clf$fit(
+  X = train |> dplyr::select(-type), 
+  y = train |> dplyr::pull(type), 
+  X_val = validate |> dplyr::select(-type), 
+  y_val = validate |> dplyr::pull(type)
+)
 
-# Fit with validation set
-clf$fit(X_train, y_train, X_val = X_val, y_val = y_val)
+# predict classes
+y_pred <- clf$predict(test |> dplyr::select(-type))
 
-# Predict classes
-y_pred <- clf$predict(iris[, 1:4])
-
-# Predict probabilities
-probs <- clf$predict_proba(iris[, 1:4])
+# predict probabilities
+probs <- clf$predict_proba(test |> dplyr::select(-type))
 ```
 
 ## To-Do’s
 
-- add RealMLP (current version is RealMLP-TD-S)
-- register preprocessors as `recipes`
-- register RealMLP & RealMLP-TD-S to `parsnip` as an engines
-- add `dials` for hyperparameter optimization
+- [x] create package & implement RealMLP-TD-S based on
+  `dholzmueller/realmlp-td-s_standalone`
+- [x] export `Mish`
+- [ ] add TD dictionaries from `pytabkit`
+- [ ] implement RealMLP-TD from `pytabkit`
+- [ ] register preprocessors as `recipes`
+- [ ] register RealMLP-TD-S & RealMLP-TD to `parsnip` as engines
+- [ ] add bagging option for RealMLP engine via cv
+- [ ] add `dials` for hyperparameter optimization (RealMLP-HPO)
+- [ ] create Caruana ensemble extension for `stacks`
+- [ ] add `tests` for Python vs R results
+- [ ] note subtle differences (such as sample vs population maths in
+  numpy.std vs base::sd())
