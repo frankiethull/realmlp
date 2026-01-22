@@ -1,0 +1,15 @@
+Package: realmlp
+Title: RealMLP with R 
+Version: 0.0.0.9000
+Authors@R: 
+    person("Frank", "Hull", , "frankiethull@gmail.com", role = c("aut", "cre"))
+Description: Implementation of RealMLP, currently supporting RealMLP-TD-S. 
+    This R implementation is based solely on the RealMLP-TD-S standalone implementation (via dholzmueller/realmlp-td-s_standalone on github).
+    RealMLP-TD-S stands for RealMLP with Tuned Defaults Simplified. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    R6,
+    torch
